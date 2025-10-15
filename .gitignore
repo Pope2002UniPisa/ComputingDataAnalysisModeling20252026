@@ -9,3 +9,6 @@ BPM_PM/jupyter/jupyterNotebooks/covid_lastday_b.csv
 BPM_PM/jupyter/jupyterNotebooks/covid_more_than_10k.csv
 BPM_PM/jupyter/jupyterNotebooks/covid_more_than_25k.csv
 BPM_PM/jupyter/jupyterNotebooks/jupyterNotebooks.code-workspace
+BPM_PM/.DS_Store
+BPM_PM/jupyter/.DS_Store
+.DS_Store
