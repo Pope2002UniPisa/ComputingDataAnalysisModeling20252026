@@ -22,8 +22,7 @@ library(bestNormalize)
 # ------------------------
 # Load the dataset (adjust the file path as necessary)
 # Use "/" on Mac - "\\" on Windows
-db_walmart <- read.csv("/Users/claudiomazzi/Documents/PhD/ASM/2025_2026/
-                       1_Linear_Regression/Walmart_Sales.csv", sep = ",")
+db_walmart <- read.csv("/PATH_TO_DB/Walmart_Sales.csv", sep = ",")
 
 # View the first few rows of the dataset and its dimension RxC
 head(db_walmart)
@@ -40,9 +39,8 @@ sum(is.na(db_walmart))
 
 # Remove missing values / imputation
 # dataset_wnan <- na.omit(db_walmart)
-#dataset_wnan <- db_walmart %>% drop_na()
-# db_walmart$Temperature[is.na(db_walmart$Temperature)] 
-  # <- mean(db_walmart$Temperature, na.rm = TRUE)
+# dataset_wnan <- db_walmart %>% drop_na()
+# db_walmart$Temperature[is.na(db_walmart$Temperature)] <- mean(db_walmart$Temperature, na.rm = TRUE)
 
 # Removing duplicate rows or redundant columns
 dataset_clean <- db_walmart[!duplicated(db_walmart), ]
@@ -77,11 +75,10 @@ pairs.panels(db_walmart[,colnames(qt_var)],
              method = "pearson", # Correlation function
              hist.col = "red",
              density = TRUE, # Show density plots
-             ellipses = TRUE, # Correletion allipses
-             ellipses()
+             ellipses = TRUE, # Correlation ellipses
              )
 
-# Correltion matrix between quant. variables
+# Correlation matrix between quant. variables
 corr_matrix <- cor(db_walmart[, colnames(qt_var)], use = "complete.obs")
 corrplot(corr_matrix, type = "upper", order = "hclust",
          tl.col = "black", tl.srt = 45)
