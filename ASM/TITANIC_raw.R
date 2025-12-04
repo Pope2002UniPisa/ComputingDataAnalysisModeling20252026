@@ -3,10 +3,12 @@
 # Follow each instruction and write the R code yourself.
 # RESEARCH QUESTIONS
 # -------------------------------------------------------------
-# 1) Are there differences in the amount paid for tickets
+# 1) s it true that more British people died than Americans because they queued?
+#
+# 2) Are there differences in the amount paid for tickets
 #    by nationality?
 #
-# 2) Is there a relationship between class and survival,
+# 3) Is there a relationship between class and survival,
 #    controlling for the other independent variables?
 #
 # Your task is to explore the dataset and answer these
