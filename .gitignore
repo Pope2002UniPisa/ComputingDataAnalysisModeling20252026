@@ -38,3 +38,7 @@ PDAI/jupyter/jupyterNotebooks/sirR0_2.00.cdat
 PDAI/jupyter/jupyterNotebooks/otherpath/__pycache__/test_import_py_nested.cpython-39.pyc
 PDAI/jupyter/jupyterNotebooks/otherpath/__pycache__/test_import_py_nested.cpython-314.pyc
 PDAI/jupyter/jupyterNotebooks/__pycache__/test_import_py.cpython-314.pyc
+PDAI/jupyter/jupyterNotebooks/covid_lastday.csv
+PDAI/jupyter/jupyterNotebooks/covid_lastday_b.csv
+PDAI/jupyter/jupyterNotebooks/covid_more_than_10k.csv
+PDAI/jupyter/jupyterNotebooks/covid_more_than_25k.csv
