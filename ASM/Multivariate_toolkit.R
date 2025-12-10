@@ -50,8 +50,16 @@ compute_factor <- function(data, vars) {
   
   # Run factor analysis with 1 factor, principal axis
   fa_res <- fa(r = R, nfactors = 1, fm = "pa")
+  # --- Print variance explained ---
+  cat("\nVariance explained by the factor:\n")
+  print(fa_res$Vaccounted)
+  
+  # --- Print loadings ---
+  cat("\nFactor loadings:\n")
+  print(fa_res$loadings)
   
   # Compute factor scores from raw data
+  # Score_i=w1Xi1 + w2Xi2 + w3Xi3
   scores <- factor.scores(data[, vars], fa_res)$scores[,1]
   
   return(scores)
