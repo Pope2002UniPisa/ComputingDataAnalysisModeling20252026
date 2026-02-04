@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>SLLD - Module 1</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="R.Porcedda, F.Chiaromonte" />
+    <script src="libs/header-attrs-2.29/header-attrs.js"></script>
+    <link rel="stylesheet" href="my-style.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# SLLD - Module 1
+]
+.subtitle[
+## PCA
+]
+.author[
+### R.Porcedda, F.Chiaromonte
+]
+.institute[
+### Sant’Anna School of Advanced Study - Pisa
+]
+.date[
+### 6/2/2026
+]
+
+---
+
+#### Libraries
+
+``` r
+library(mvtnorm)    # for the toy simulated example
+library(factoextra) # contains also decathlon data
+library(corrplot)   # correlation plots
+```
+
+#### Data
+We use both simulated data from a multivariate normal distribution and real data
+
+``` r
+Sigma.x1=diag(4)
+mu=c(1,1,1,1)
+set.seed(1)
+x1=rmvnorm(50, mu, Sigma.x1)  
+
+Sigma.x2=diag(4)
+  for(i in 1:nrow(Sigma.x2)) {for(j in 1:ncol(Sigma.x2)) {
+      Sigma.x2[[i,j]] = 0.9^(abs(i-j)) }}
+mu1=c(1,1,1,1)
+set.seed(1)
+x2=rmvnorm(50, mu1, Sigma.x2) 
+
+data("USArrests")
+x3=USArrests 
+dim(x3)
+```
+
+```
+## [1] 50  4
+```
+
+
+---
+We can use the function **corrplot** to display the correlation matrices
+
+``` r
+corrplot(cor(x1))
+```
+
+&lt;img src="PCA_Slides_files/figure-html/unnamed-chunk-2-1.png" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+``` r
+corrplot(cor(x2))
+```
+
+&lt;img src="PCA_Slides_files/figure-html/unnamed-chunk-3-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+
+``` r
+corrplot(cor(x3))
+```
+
+&lt;img src="PCA_Slides_files/figure-html/unnamed-chunk-4-1.png" style="display: block; margin: auto;" /&gt;
+
+
+---
+To perform principal components analysis we use the **prcomp()** function. It requires:
+- **data:** a data frame
+- **scale:** a logical value (TRUE/FALSE) 
+
+``` r
+PCA.1 &lt;- prcomp(x1, scale = TRUE)
+PCA.2 &lt;- prcomp(x2, scale = TRUE)
+PCA.3 &lt;- prcomp(x3, scale = TRUE)
+str(PCA.1) # a diagnostic function
+```
+
+```
+## List of 5
+##  $ sdev    : num [1:4] 1.131 1.009 0.94 0.904
+##  $ rotation: num [1:4, 1:4] 0.559 -0.408 0.545 0.474 0.426 ...
+##   ..- attr(*, "dimnames")=List of 2
+##   .. ..$ : NULL
+##   .. ..$ : chr [1:4] "PC1" "PC2" "PC3" "PC4"
+##  $ center  : num [1:4] 0.959 1.038 1.184 0.96
+##  $ scale   : num [1:4] 0.811 0.988 1.006 0.908
+##  $ x       : num [1:50, 1:4] -0.163 1.179 1.51 1.036 0.318 ...
+##   ..- attr(*, "dimnames")=List of 2
+##   .. ..$ : NULL
+##   .. ..$ : chr [1:4] "PC1" "PC2" "PC3" "PC4"
+##  - attr(*, "class")= chr "prcomp"
+```
+The result is a list containing 5 elements:
+**sdev:** the standard deviations of the principal components (square root of the eigenvalues)
+**rotation:** the matrix of variable loadings (eigenvectors)
+**center:** the centering used if *scale=TRUE*
+**scale:** the scaling used if *scale=TRUE*
+**x:** the scores, i.e. the rotated data
+
+
+---
+### Selecting the number of components
+The selection of a "suitable" number of components is non-trivial since in unsupervised learning tasks no ground-truth/labels/response variable is available (which may be used to assess and validate our results otherwise, e.g. through cross-validation -- more on this later). 
+
+However, some "rules of thumb" have been developed.
+For instance, one may consider the **percentage of variance explained** (**PVE**), or the **cumulative PVE**. Here we use the **get_eig** function of the **factoextra** package.
+
+
+---
+
+``` r
+get_eig(PCA.1)
+```
+
+```
+##       eigenvalue variance.percent cumulative.variance.percent
+## Dim.1  1.2800721         32.00180                    32.00180
+## Dim.2  1.0185759         25.46440                    57.46620
+## Dim.3  0.8835112         22.08778                    79.55398
+## Dim.4  0.8178408         20.44602                   100.00000
+```
+
+``` r
+get_eig(PCA.2)
+```
+
+```
+##       eigenvalue variance.percent cumulative.variance.percent
+## Dim.1 3.57835025        89.458756                    89.45876
+## Dim.2 0.26573517         6.643379                    96.10214
+## Dim.3 0.09266963         2.316741                    98.41888
+## Dim.4 0.06324494         1.581124                   100.00000
+```
+
+``` r
+get_eig(PCA.3)
+```
+
+```
+##       eigenvalue variance.percent cumulative.variance.percent
+## Dim.1  2.4802416        62.006039                    62.00604
+## Dim.2  0.9897652        24.744129                    86.75017
+## Dim.3  0.3565632         8.914080                    95.66425
+## Dim.4  0.1734301         4.335752                   100.00000
+```
+
+---
+Based on this information we can create a **scree plot**, and try to find an **elbow** (i.e. an inflection point) therein.
+
+``` r
+fviz_eig(PCA.1, addlabels = TRUE, ylim = c(0, 45))
+```
+
+![](PCA_Slides_files/figure-html/unnamed-chunk-7-1.png)&lt;!-- --&gt;
+
+
+---
+
+``` r
+fviz_eig(PCA.2, addlabels = TRUE, ylim = c(0, 100))
+```
+
+![](PCA_Slides_files/figure-html/unnamed-chunk-8-1.png)&lt;!-- --&gt;
+
+
+---
+
+``` r
+fviz_eig(PCA.3, addlabels = TRUE, ylim = c(0, 75))
+```
+
+![](PCA_Slides_files/figure-html/unnamed-chunk-9-1.png)&lt;!-- --&gt;
+
+---
+Sometimes, it is not easy to identify an elbow, or this might be associated to a particularly low cumulative PVE.
+Thus, it is common to fix an **acceptance threshold** a priori (e.g. 75%), and then look at the **cumulative PVE**.
+
+``` r
+plot(get_eig(PCA.1)$cumulative.variance.percent, 
+     type='b', axes=F, xlab='Dimensions', ylab='cumulative PVE', 
+     ylim=c(0,100))
+abline(h=100, col=alpha('blue',0.5))
+abline(h=75, lty=2, col='red', lwd=2) # thresholding
+box()
+axis(2, at=0:100,labels=0:100)
+axis(1,at=1:ncol(decathlon2),labels=1:ncol(decathlon2))
+grid()
+```
+
+&lt;img src="PCA_Slides_files/figure-html/unnamed-chunk-10-1.png" style="display: block; margin: auto;" /&gt;
+
+
+
+
+
+---
+
+``` r
+plot(get_eig(PCA.2)$cumulative.variance.percent, 
+     type='b', axes=F, xlab='Dimensions', ylab='cumulative PVE', 
+     ylim=c(0,100))
+abline(h=100, col=alpha('blue',0.5))
+abline(h=75, lty=2, col='red', lwd=2) # thresholding
+box()
+axis(2, at=0:100,labels=0:100)
+axis(1,at=1:ncol(decathlon2),labels=1:ncol(decathlon2))
+grid()
+```
+
+&lt;img src="PCA_Slides_files/figure-html/unnamed-chunk-11-1.png" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+``` r
+plot(get_eig(PCA.3)$cumulative.variance.percent, 
+     type='b', axes=F, xlab='Dimensions', ylab='cumulative PVE', 
+     ylim=c(0,100))
+abline(h=100, col=alpha('blue',0.5))
+abline(h=75, lty=2, col='red', lwd=2) # thresholding
+box()
+axis(2, at=0:100,labels=0:100)
+axis(1,at=1:ncol(decathlon2),labels=1:ncol(decathlon2))
+grid()
+```
+
+&lt;img src="PCA_Slides_files/figure-html/unnamed-chunk-12-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+### Loadings interpretation
+Let’s focus on the loadings, i.e., the eigenvectors representing the directions of the PCs.
+
+We can plot the first two PCs (PC1 and PC2) in the **graph of variables** (also called correlation circle). To this end, we use the function **fviz_pca_var**
+
+Here the importance of the original features is represented by the **color code**:
+
+- red: high
+- blue: medium 
+- white: low
+
+and by the lenght of the vector (its **closeness** to the circle).
+
+In these plots, positively correlated variables have same direction (they are close to each other, i.e. they have a small angle in between).
+Negatively correlated variables have opposite directions.
+Uncorrelated variables are orthogonal.
+
+
+---
+
+``` r
+fviz_pca_var(PCA.1,
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE )    # Avoid text overlapping
+```
+
+&lt;img src="PCA_Slides_files/figure-html/unnamed-chunk-13-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+
+``` r
+fviz_pca_var(PCA.1, axes = c(3, 4),
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE )    # Avoid text overlapping
+```
+
+&lt;img src="PCA_Slides_files/figure-html/unnamed-chunk-14-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+
+``` r
+fviz_pca_var(PCA.2,
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE )    # Avoid text overlapping
+```
+
+&lt;img src="PCA_Slides_files/figure-html/unnamed-chunk-15-1.png" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+``` r
+fviz_pca_var(PCA.2, axes = c(3, 4),
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE )    # Avoid text overlapping
+```
+
+&lt;img src="PCA_Slides_files/figure-html/unnamed-chunk-16-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+
+``` r
+fviz_pca_var(PCA.3,
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE )    # Avoid text overlapping
+```
+
+&lt;img src="PCA_Slides_files/figure-html/unnamed-chunk-17-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+
+``` r
+fviz_pca_var(PCA.3, axes = c(3, 4),
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE )    # Avoid text overlapping
+```
+
+&lt;img src="PCA_Slides_files/figure-html/unnamed-chunk-18-1.png" style="display: block; margin: auto;" /&gt;
+
+---
+If we want to show also the individuals we can run the **biplot of individuals and variables**.
+
+``` r
+fviz_pca_biplot(PCA.3, repel = TRUE,
+                col.var = "#2E9FDF", # Variables color
+                col.ind = "#696969"  # Individuals color
+)
+```
+
+&lt;img src="PCA_Slides_files/figure-html/unnamed-chunk-19-1.png" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+## Now it's your turn!!!
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create();
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
